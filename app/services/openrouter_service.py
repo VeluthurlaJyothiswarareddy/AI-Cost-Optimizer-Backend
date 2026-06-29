@@ -15,6 +15,26 @@ class OpenRouterError(Exception):
         self.status_code = status_code
 
 
+def _build_budget_system_prompt(max_tokens: int) -> str:
+    """Build a system instruction that guides the model to produce a complete,
+    self-contained answer within the requested token budget instead of being
+    hard-truncated mid-sentence.
+
+    ~1 token is roughly 0.75 words. We target slightly under the budget so the
+    model has room to finish on a complete sentence before hitting the cap.
+    """
+    target_words = max(1, int(max_tokens * 0.6))
+    return (
+        "You are a concise assistant. You have a strict output budget of about "
+        f"{max_tokens} tokens (roughly {target_words} words). "
+        "Plan your reply so it is a COMPLETE, self-contained answer that fits "
+        "within this budget. Prioritize the most important information, be "
+        "concise, and ALWAYS finish on a complete sentence. Do not get cut off "
+        "mid-thought. If the topic is large, briefly summarize rather than "
+        "starting a detailed explanation you cannot finish."
+    )
+
+
 class OpenRouterService:
     def __init__(self) -> None:
         self.base_url = settings.openrouter_base_url.rstrip("/")
@@ -34,7 +54,10 @@ class OpenRouterService:
 
         payload = {
             "model": model,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": [
+                {"role": "system", "content": _build_budget_system_prompt(max_tokens)},
+                {"role": "user", "content": prompt},
+            ],
             "max_tokens": max_tokens,
         }
 
