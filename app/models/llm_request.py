@@ -11,6 +11,7 @@ class LLMRequestDocument:
 
     @staticmethod
     def to_document(
+        user_id: str,
         prompt: str,
         model: str,
         max_tokens: int,
@@ -22,6 +23,7 @@ class LLMRequestDocument:
         response: str,
     ) -> dict[str, Any]:
         return {
+            "user_id": user_id,
             "prompt": prompt,
             "model": model,
             "max_tokens": max_tokens,

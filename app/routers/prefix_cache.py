@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+
+from app.dependencies.auth import get_current_user
 
 from app.schemas.prefix_cache import (
     PrefixCacheChatRequest,
@@ -12,7 +14,10 @@ router = APIRouter(prefix="/api/prefix-cache", tags=["prefix-cache"])
 
 
 @router.post("/chat", response_model=PrefixCacheChatResponse)
-async def prefix_cache_chat(request: PrefixCacheChatRequest) -> PrefixCacheChatResponse:
+async def prefix_cache_chat(
+    request: PrefixCacheChatRequest,
+    _: dict = Depends(get_current_user),
+) -> PrefixCacheChatResponse:
     try:
         result = await prompt_cache_service.chat(
             system_prompt=request.system_prompt,
@@ -30,6 +35,8 @@ async def prefix_cache_chat(request: PrefixCacheChatRequest) -> PrefixCacheChatR
 
 
 @router.get("/metrics", response_model=PrefixCacheMetricsResponse)
-async def prefix_cache_metrics() -> PrefixCacheMetricsResponse:
+async def prefix_cache_metrics(
+    _: dict = Depends(get_current_user),
+) -> PrefixCacheMetricsResponse:
     result = await prompt_cache_service.get_metrics()
     return PrefixCacheMetricsResponse(**result)

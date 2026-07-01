@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import close_mongo_connection, connect_to_mongo
-from app.routers import chat, history, metrics, model_tiering, prefix_cache
+from app.routers import auth, chat, history, metrics, model_tiering, prefix_cache
 
 
 @asynccontextmanager
@@ -29,6 +29,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(history.router)
 app.include_router(metrics.router)

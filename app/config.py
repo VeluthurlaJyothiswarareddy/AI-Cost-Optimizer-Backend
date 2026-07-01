@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     mongo_uri: str = "mongodb://localhost:27017"
     database_name: str = "ai_cost_optimizer"
+    jwt_secret_key: str = "change-me-in-production"
+    jwt_algorithm: str = "HS256"
+    jwt_expire_minutes: int = 60 * 24 * 7
 
 
 settings = Settings()

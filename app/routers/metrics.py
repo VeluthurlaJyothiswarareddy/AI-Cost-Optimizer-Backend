@@ -1,16 +1,18 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from app.database import get_collection
+from app.dependencies.auth import get_current_user
 from app.schemas.metrics import MetricsResponse
 
 router = APIRouter(prefix="/api", tags=["metrics"])
 
 
 @router.get("/metrics", response_model=MetricsResponse)
-async def get_metrics() -> MetricsResponse:
+async def get_metrics(current_user: dict = Depends(get_current_user)) -> MetricsResponse:
     collection = get_collection()
 
     pipeline = [
+        {"$match": {"user_id": current_user["id"]}},
         {
             "$group": {
                 "_id": None,
@@ -18,7 +20,7 @@ async def get_metrics() -> MetricsResponse:
                 "total_tokens": {"$sum": "$total_tokens"},
                 "total_cost": {"$sum": "$estimated_cost"},
             }
-        }
+        },
     ]
 
     result = await collection.aggregate(pipeline).to_list(length=1)

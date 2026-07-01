@@ -37,10 +37,11 @@ def calculate_premium_cost(input_tokens: int, output_tokens: int) -> float:
     return calculate_tiering_cost(PREMIUM_MODEL, input_tokens, output_tokens)
 
 
-async def get_metrics() -> dict[str, Any]:
+async def get_metrics(user_id: str) -> dict[str, Any]:
     collection = get_model_routing_collection()
 
     pipeline = [
+        {"$match": {"user_id": user_id}},
         {
             "$group": {
                 "_id": None,
@@ -86,9 +87,13 @@ async def get_metrics() -> dict[str, Any]:
     }
 
 
-async def get_history(limit: int = 50) -> list[dict[str, Any]]:
+async def get_history(user_id: str, limit: int = 50) -> list[dict[str, Any]]:
     collection = get_model_routing_collection()
     capped_limit = min(limit, 200)
-    cursor = collection.find().sort("created_at", -1).limit(capped_limit)
+    cursor = (
+        collection.find({"user_id": user_id})
+        .sort("created_at", -1)
+        .limit(capped_limit)
+    )
     documents = await cursor.to_list(length=capped_limit)
     return [ModelRoutingDocument.serialize(doc) for doc in documents]

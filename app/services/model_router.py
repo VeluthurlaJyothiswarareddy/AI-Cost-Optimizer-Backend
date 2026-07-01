@@ -66,7 +66,7 @@ def route_prompt(prompt: str) -> tuple[str, str, str]:
 
 
 class ModelRouterService:
-    async def route_and_chat(self, prompt: str) -> dict[str, Any]:
+    async def route_and_chat(self, prompt: str, user_id: str) -> dict[str, Any]:
         selected_model, tier, routing_reason = route_prompt(prompt)
 
         result = await openrouter_service.chat_completion(
@@ -87,6 +87,7 @@ class ModelRouterService:
         savings = max(0.0, round(premium_model_cost - actual_cost, 6))
 
         document = ModelRoutingDocument.to_document(
+            user_id=user_id,
             prompt=prompt,
             selected_model=selected_model,
             tier=tier,

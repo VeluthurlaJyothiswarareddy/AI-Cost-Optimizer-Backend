@@ -9,6 +9,7 @@ class ModelRoutingDocument:
 
     @staticmethod
     def to_document(
+        user_id: str,
         prompt: str,
         selected_model: str,
         tier: str,
@@ -23,6 +24,7 @@ class ModelRoutingDocument:
         response: str,
     ) -> dict[str, Any]:
         return {
+            "user_id": user_id,
             "prompt": prompt,
             "selected_model": selected_model,
             "tier": tier,

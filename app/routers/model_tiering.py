@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+
+from app.dependencies.auth import get_current_user
 
 from app.schemas.model_tiering import (
     ModelTieringChatRequest,
@@ -14,9 +16,15 @@ router = APIRouter(prefix="/api/model-tiering", tags=["model-tiering"])
 
 
 @router.post("/chat", response_model=ModelTieringChatResponse)
-async def model_tiering_chat(request: ModelTieringChatRequest) -> ModelTieringChatResponse:
+async def model_tiering_chat(
+    request: ModelTieringChatRequest,
+    current_user: dict = Depends(get_current_user),
+) -> ModelTieringChatResponse:
     try:
-        result = await model_router_service.route_and_chat(prompt=request.prompt)
+        result = await model_router_service.route_and_chat(
+            prompt=request.prompt,
+            user_id=current_user["id"],
+        )
     except OpenRouterError as exc:
         status = exc.status_code if exc.status_code and exc.status_code < 500 else 502
         if exc.status_code == 500:
@@ -39,12 +47,17 @@ async def model_tiering_chat(request: ModelTieringChatRequest) -> ModelTieringCh
 
 
 @router.get("/history", response_model=list[ModelTieringHistoryItem])
-async def model_tiering_history(limit: int = 50) -> list[ModelTieringHistoryItem]:
-    items = await get_history(limit=limit)
+async def model_tiering_history(
+    limit: int = 50,
+    current_user: dict = Depends(get_current_user),
+) -> list[ModelTieringHistoryItem]:
+    items = await get_history(user_id=current_user["id"], limit=limit)
     return [ModelTieringHistoryItem(**item) for item in items]
 
 
 @router.get("/metrics", response_model=ModelTieringMetricsResponse)
-async def model_tiering_metrics() -> ModelTieringMetricsResponse:
-    result = await get_metrics()
+async def model_tiering_metrics(
+    current_user: dict = Depends(get_current_user),
+) -> ModelTieringMetricsResponse:
+    result = await get_metrics(user_id=current_user["id"])
     return ModelTieringMetricsResponse(**result)

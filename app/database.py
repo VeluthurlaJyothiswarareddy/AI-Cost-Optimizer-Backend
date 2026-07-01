@@ -40,3 +40,11 @@ def get_model_tiering_collection():
 
 def get_model_routing_collection():
     return get_database()["model_routing_requests"]
+
+
+def get_users_collection():
+    return get_database()["users"]
+
+
+def get_revoked_tokens_collection():
+    return get_database()["revoked_tokens"]
